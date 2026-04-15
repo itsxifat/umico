@@ -1,0 +1,133 @@
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  padding: var(--s-6) 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.brand {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+  padding: 0 var(--s-6) var(--s-8);
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--s-6);
+}
+
+.brandLink {
+  font-family: var(--font-serif);
+  font-size: var(--fs-xl);
+  letter-spacing: var(--ls-widest);
+  color: var(--color-text);
+}
+
+.brandLabel {
+  font-size: 10px;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.nav {
+  flex: 1;
+  padding: 0 var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.groupHeading {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--color-muted);
+  padding: 0 var(--s-3) var(--s-2);
+}
+
+.group ul {
+  display: flex;
+  flex-direction: column;
+}
+
+.link {
+  display: block;
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--color-muted-strong);
+  border-left: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.link:hover {
+  color: var(--color-text);
+  opacity: 1;
+}
+
+.topLink {
+  padding: var(--s-3);
+  font-weight: 500;
+}
+
+.active {
+  color: var(--color-text);
+  background: var(--color-surface-alt);
+  border-left-color: var(--color-accent);
+}
+
+.footer {
+  padding: var(--s-6) var(--s-6) 0;
+  border-top: 1px solid var(--color-border);
+  margin-top: var(--s-6);
+}
+
+.viewSite {
+  font-size: var(--fs-xs);
+  letter-spacing: var(--ls-wide);
+  color: var(--color-muted);
+}
+
+.mobileTrigger {
+  display: none;
+  position: fixed;
+  top: var(--s-4);
+  left: var(--s-4);
+  z-index: var(--z-modal);
+  width: 40px;
+  height: 40px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 20px;
+}
+
+@media (max-width: 900px) {
+  .mobileTrigger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 280px;
+    z-index: calc(var(--z-modal) - 1);
+    transform: translateX(-100%);
+    transition: transform var(--dur-med) var(--ease-out);
+  }
+  .sidebar.open {
+    transform: translateX(0);
+  }
+}

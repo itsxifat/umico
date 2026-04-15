@@ -1,0 +1,126 @@
+/* ─────────────────────────────────────────────
+   UMICO — CSS Variables
+   These variables are the single source of truth for theming.
+   Values can be overridden at runtime via a <style> tag injected
+   by the ThemeProvider, which reads from the SiteSettings document
+   in MongoDB (admin Branding page).
+   ───────────────────────────────────────────── */
+
+:root {
+  /* ─── Brand colors (light mode defaults) ─── */
+  --color-primary: #F4D4CE;       /* dusty rose */
+  --color-secondary: #3B2418;     /* premium chocolate */
+  --color-accent: #BA9371;        /* warm tan */
+  --color-background: #FAF6F1;    /* cream */
+  --color-text: #2A1810;          /* deep brown */
+
+  /* ─── Derived neutrals ─── */
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F5EFE8;
+  --color-border: rgba(42, 24, 16, 0.12);
+  --color-border-strong: rgba(42, 24, 16, 0.24);
+  --color-muted: rgba(42, 24, 16, 0.56);
+  --color-muted-strong: rgba(42, 24, 16, 0.72);
+  --color-overlay: rgba(42, 24, 16, 0.56);
+
+  /* ─── Feedback ─── */
+  --color-success: #4F7A4A;
+  --color-warning: #C48A3C;
+  --color-error: #B84A3A;
+  --color-info: #4A6A8A;
+
+  /* ─── Typography ─── */
+  --font-serif: var(--font-playfair), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  --fs-xs: 0.75rem;    /* 12 */
+  --fs-sm: 0.875rem;   /* 14 */
+  --fs-base: 1rem;     /* 16 */
+  --fs-md: 1.125rem;   /* 18 */
+  --fs-lg: 1.375rem;   /* 22 */
+  --fs-xl: 1.75rem;    /* 28 */
+  --fs-2xl: 2.25rem;   /* 36 */
+  --fs-3xl: 3rem;      /* 48 */
+  --fs-4xl: 4rem;      /* 64 */
+  --fs-5xl: 5.5rem;    /* 88 */
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-normal: 1.5;
+  --lh-relaxed: 1.7;
+
+  --ls-tight: -0.02em;
+  --ls-normal: 0;
+  --ls-wide: 0.04em;
+  --ls-widest: 0.18em;
+
+  /* ─── Spacing (4-px base scale) ─── */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.25rem;
+  --s-6: 1.5rem;
+  --s-8: 2rem;
+  --s-10: 2.5rem;
+  --s-12: 3rem;
+  --s-16: 4rem;
+  --s-20: 5rem;
+  --s-24: 6rem;
+  --s-32: 8rem;
+
+  /* ─── Layout ─── */
+  --max-w: 1440px;
+  --max-w-narrow: 1080px;
+  --max-w-text: 720px;
+  --gutter: clamp(1rem, 3vw, 2.5rem);
+
+  /* ─── Radii ─── */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-pill: 999px;
+
+  /* ─── Shadows ─── */
+  --shadow-sm: 0 1px 2px rgba(42, 24, 16, 0.05);
+  --shadow-md: 0 6px 18px rgba(42, 24, 16, 0.08);
+  --shadow-lg: 0 18px 48px rgba(42, 24, 16, 0.12);
+
+  /* ─── Motion ─── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 180ms;
+  --dur-med: 320ms;
+  --dur-slow: 560ms;
+
+  /* ─── Z-index scale ─── */
+  --z-base: 1;
+  --z-sticky: 100;
+  --z-header: 200;
+  --z-dropdown: 300;
+  --z-overlay: 400;
+  --z-modal: 500;
+  --z-toast: 600;
+  --z-cursor: 9999;
+}
+
+[data-theme='dark'] {
+  --color-primary: #E8B5AD;
+  --color-secondary: #F0E6DC;
+  --color-accent: #C9A57A;
+  --color-background: #1A110C;
+  --color-text: #F5EDE4;
+
+  --color-surface: #221712;
+  --color-surface-alt: #2B1E17;
+  --color-border: rgba(245, 237, 228, 0.14);
+  --color-border-strong: rgba(245, 237, 228, 0.28);
+  --color-muted: rgba(245, 237, 228, 0.6);
+  --color-muted-strong: rgba(245, 237, 228, 0.78);
+  --color-overlay: rgba(0, 0, 0, 0.64);
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 18px 48px rgba(0, 0, 0, 0.6);
+}

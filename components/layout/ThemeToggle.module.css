@@ -1,0 +1,40 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.toggle:hover {
+  border-color: var(--color-text);
+}
+
+.indicator {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.dot {
+  position: absolute;
+  top: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  background: var(--color-text);
+  transition: left var(--dur-med) var(--ease-out);
+}
+
+.light .dot {
+  left: 0;
+}
+
+.dark .dot {
+  left: calc(100% - 18px);
+}

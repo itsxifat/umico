@@ -1,0 +1,28 @@
+{
+  "name": "umico",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "mongoose": "^8.5.1",
+    "next-auth": "^4.24.7",
+    "bcryptjs": "^2.4.3",
+    "nodemailer": "^6.9.14",
+    "sharp": "^0.33.4",
+    "fuse.js": "^7.0.0",
+    "gsap": "^3.12.5",
+    "jsonwebtoken": "^9.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.0",
+    "eslint-config-next": "14.2.5"
+  }
+}
