@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }) {
   };
 
   return (
-    <div className="grid min-h-screen bg-surface-alt max-[900px]:grid-cols-1" style={{ gridTemplateColumns: '260px 1fr' }}>
+    <div className="grid min-h-screen bg-surface-alt max-[900px]:grid-cols-1" data-admin-grid>
       <AdminSidebar user={safeUser} />
       <div className="flex flex-col min-w-0">
         <AdminTopBar user={safeUser} />

@@ -148,3 +148,19 @@ ul, ol {
   font-size: var(--fs-md);
   letter-spacing: var(--ls-wide);
 }
+
+/* ─── Product detail 2-col grid ─── */
+@media (min-width: 900px) {
+  [data-product-grid] {
+    grid-template-columns: 1fr 1fr;
+  }
+  [data-footer-inner] {
+    grid-template-columns: 1.2fr 2fr;
+  }
+  [data-admin-grid] {
+    grid-template-columns: 260px 1fr;
+  }
+  [data-checkout-grid] {
+    grid-template-columns: 1.3fr 1fr;
+  }
+}
