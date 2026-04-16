@@ -20,6 +20,7 @@ export const POST = handler(async (req) => {
   if (!shippingAddress?.fullName || !shippingAddress?.phone || !shippingAddress?.addressLine1 || !shippingAddress?.city) {
     return fail('Shipping address is incomplete.', { status: 400 });
   }
+  if (!user) return fail('Please log in to place an order.', { status: 401 });
 
   await dbConnect();
 
@@ -53,32 +54,31 @@ export const POST = handler(async (req) => {
       productName: item.productName,
       productImage: item.productImage || '',
       variantLabel: item.variantLabel || '',
-      price: item.price,
       quantity: item.quantity,
-      lineTotal: item.price * item.quantity,
+      unitPrice: item.price,
+      totalPrice: item.price * item.quantity,
     });
   }
 
   const order = await Order.create({
     orderId: generateOrderId(),
-    user: user?._id || null,
-    guestEmail: shippingAddress.email || '',
+    customer: user._id,
     items: orderItems,
     shippingAddress: {
       fullName: shippingAddress.fullName,
       phone: shippingAddress.phone,
-      addressLine1: shippingAddress.addressLine1,
-      addressLine2: shippingAddress.addressLine2 || '',
+      address: shippingAddress.addressLine1 + (shippingAddress.addressLine2 ? ', ' + shippingAddress.addressLine2 : ''),
       city: shippingAddress.city,
       area: shippingAddress.area || '',
-      postalCode: shippingAddress.postalCode || '',
+      postcode: shippingAddress.postalCode || '',
     },
-    paymentMethod,
+    paymentMethod: paymentMethod === 'cod' ? 'cod' : 'online',
     subtotal,
     shippingCost,
-    grandTotal,
-    notes: notes || '',
-    status: 'pending',
+    total: grandTotal,
+    customerNote: notes || '',
+    orderStatus: 'pending',
+    paymentStatus: 'pending',
   });
 
   return ok({ orderId: order.orderId, _id: order._id }, { status: 201 });
