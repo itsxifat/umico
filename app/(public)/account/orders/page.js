@@ -14,7 +14,8 @@ const STATUS_COLORS = {
   pending: 'text-warning',
   confirmed: 'text-accent',
   processing: 'text-accent',
-  shipped: 'text-[var(--color-info)]',
+  shipped: 'text-success',
+  in_transit: 'text-success',
   delivered: 'text-success',
   cancelled: 'text-error',
   returned: 'text-muted',
@@ -25,7 +26,7 @@ export default async function OrdersPage() {
   if (!user) redirect('/login?from=/account/orders');
 
   await dbConnect();
-  const orders = await Order.find({ user: user._id })
+  const orders = await Order.find({ customer: user._id })
     .sort({ createdAt: -1 })
     .limit(50)
     .lean();
@@ -58,8 +59,8 @@ export default async function OrdersPage() {
                     {new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
-                <span className={`text-xs tracking-wide uppercase font-medium ${STATUS_COLORS[order.status] || 'text-muted'}`}>
-                  {order.status}
+                <span className={`text-xs tracking-wide uppercase font-medium ${STATUS_COLORS[order.orderStatus] || 'text-muted'}`}>
+                  {order.orderStatus?.replace('_', ' ')}
                 </span>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -79,7 +80,7 @@ export default async function OrdersPage() {
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-muted">{order.items?.length || 0} items</span>
-                <span className="font-medium text-ink">{formatPrice(order.grandTotal)}</span>
+                <span className="font-medium text-ink">{formatPrice(order.total)}</span>
               </div>
             </div>
           ))}

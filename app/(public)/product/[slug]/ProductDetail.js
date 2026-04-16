@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 
@@ -271,6 +271,157 @@ export default function ProductDetail({ product }) {
           )}
         </div>
       </div>
+
+      {/* Reviews section */}
+      <ReviewsSection productId={product._id} />
+    </div>
+  );
+}
+
+function ReviewsSection({ productId }) {
+  const [reviews, setReviews] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [rating, setRating] = useState(5);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [submitMsg, setSubmitMsg] = useState('');
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/reviews?product=${productId}`);
+      const json = await res.json();
+      if (json.success) {
+        setReviews(json.data);
+        setStats(json.meta?.stats || null);
+      }
+    } catch {} finally {
+      setLoading(false);
+    }
+  }, [productId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  const submitReview = async (e) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setSubmitMsg('');
+    try {
+      const res = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, rating, title, body: body }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setSubmitMsg('Review submitted! It will appear after approval.');
+        setShowForm(false);
+        setTitle('');
+        setBody('');
+        setRating(5);
+      } else {
+        setSubmitMsg(json.message || 'Failed to submit.');
+      }
+    } catch {
+      setSubmitMsg('Network error.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  if (loading) return null;
+
+  return (
+    <div className="mt-16 pt-10 border-t border-line">
+      <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
+        <div>
+          <h2 className="font-serif text-[clamp(1.25rem,2vw,1.75rem)] mb-2">Customer Reviews</h2>
+          {stats && stats.count > 0 && (
+            <div className="flex items-center gap-3">
+              <span className="text-2xl font-medium text-ink">{stats.avg?.toFixed(1)}</span>
+              <div className="flex items-center gap-px">
+                {[1, 2, 3, 4, 5].map((n) => (
+                  <span key={n} className={`text-sm ${n <= Math.round(stats.avg) ? 'text-accent' : 'text-line-strong'}`}>★</span>
+                ))}
+              </div>
+              <span className="text-xs text-muted">({stats.count} review{stats.count !== 1 ? 's' : ''})</span>
+            </div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowForm(!showForm)}
+          className="px-6 py-2.5 border border-line-strong text-xs tracking-widest uppercase text-muted-fg hover:text-ink hover:border-ink transition-colors"
+        >
+          Write a review
+        </button>
+      </div>
+
+      {submitMsg && (
+        <p className="text-sm text-success mb-4">{submitMsg}</p>
+      )}
+
+      {showForm && (
+        <form onSubmit={submitReview} className="bg-surface border border-line p-6 mb-8 flex flex-col gap-4 max-w-[500px]">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs tracking-wide uppercase text-muted-fg font-medium">Rating</span>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button key={n} type="button" onClick={() => setRating(n)}
+                  className={`text-xl ${n <= rating ? 'text-accent' : 'text-line-strong'}`}>★</button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs tracking-wide uppercase text-muted-fg font-medium">Title</span>
+            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+              className="px-3 py-2 bg-canvas border border-line-strong text-ink text-sm focus:outline-none focus:border-ink" />
+          </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-xs tracking-wide uppercase text-muted-fg font-medium">Your review</span>
+            <textarea value={body} onChange={(e) => setBody(e.target.value)} rows={3}
+              className="px-3 py-2 bg-canvas border border-line-strong text-ink text-sm resize-y focus:outline-none focus:border-ink" />
+          </div>
+          <button type="submit" disabled={submitting}
+            className="self-start px-6 py-2.5 bg-secondary text-canvas text-xs tracking-widest uppercase hover:opacity-85 disabled:opacity-50 transition-opacity">
+            {submitting ? 'Submitting…' : 'Submit review'}
+          </button>
+        </form>
+      )}
+
+      {reviews.length === 0 ? (
+        <p className="text-sm text-muted py-8">No reviews yet. Be the first to review this product.</p>
+      ) : (
+        <div className="flex flex-col gap-6">
+          {reviews.map((r) => (
+            <div key={r._id} className="pb-6 border-b border-line last:border-b-0">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-px">
+                  {[1, 2, 3, 4, 5].map((n) => (
+                    <span key={n} className={`text-xs ${n <= r.rating ? 'text-accent' : 'text-line-strong'}`}>★</span>
+                  ))}
+                </div>
+                {r.verifiedPurchase && (
+                  <span className="text-[10px] tracking-wide text-success font-medium">Verified Purchase</span>
+                )}
+              </div>
+              {r.title && <p className="text-sm font-medium text-ink mb-1">{r.title}</p>}
+              {r.body && <p className="text-sm text-muted-fg leading-relaxed">{r.body}</p>}
+              <p className="text-xs text-muted mt-2">
+                {r.user?.name || 'Anonymous'} — {new Date(r.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+              </p>
+              {r.reply?.body && (
+                <div className="mt-3 ml-4 pl-4 border-l-2 border-accent">
+                  <p className="text-xs font-medium text-accent mb-1">UMICO Team</p>
+                  <p className="text-sm text-muted-fg">{r.reply.body}</p>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
