@@ -1,0 +1,22 @@
+.toolbar {
+  display: flex; gap: var(--s-3); align-items: center;
+  margin-bottom: var(--s-5); flex-wrap: wrap;
+}
+.search {
+  flex: 1; min-width: 200px; max-width: 360px;
+  padding: var(--s-3) var(--s-4);
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-surface); color: var(--color-text); font-size: var(--fs-sm);
+}
+.search:focus { outline: none; border-color: var(--color-text); }
+.nameCell { display: flex; align-items: center; gap: var(--s-3); }
+.logo { width: 40px; height: 40px; object-fit: contain; border: 1px solid var(--color-border); padding: 4px; flex-shrink: 0; }
+.logoPlaceholder {
+  width: 40px; height: 40px; background: var(--color-surface-alt);
+  border: 1px solid var(--color-border); display: flex;
+  align-items: center; justify-content: center;
+  font-family: var(--font-serif); color: var(--color-muted); font-size: var(--fs-lg);
+  flex-shrink: 0;
+}
+.slug { font-family: monospace; font-size: var(--fs-xs); color: var(--color-muted); }
+.none { color: var(--color-muted); }
