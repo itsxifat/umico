@@ -4,10 +4,16 @@ import { useState, useEffect } from 'react';
 import { useToast } from '@/components/providers/ToastProvider';
 import AdminBtn from '@/components/admin/AdminBtn';
 import { AdminInput, AdminSelect, AdminTextarea } from '@/components/admin/AdminInput';
-import styles from './branding.module.css';
 
 const DEFAULT_LIGHT = { primary: '#F4D4CE', secondary: '#3B2418', accent: '#BA9371', background: '#FAF6F1', text: '#2A1810' };
 const DEFAULT_DARK = { primary: '#E8B5AD', secondary: '#F0E6DC', accent: '#C9A57A', background: '#1A110C', text: '#F5EDE4' };
+
+const sectionCls = 'bg-surface border border-line p-6 flex flex-col gap-4';
+const sectionTitleCls = 'font-sans text-xs font-semibold tracking-widest uppercase text-muted pb-3 border-b border-line';
+const tabCls = (active) =>
+  `px-5 py-3 text-xs tracking-wide uppercase border-b-2 mb-[-1px] whitespace-nowrap transition-colors ${
+    active ? 'text-ink border-secondary' : 'text-muted-fg border-transparent hover:text-ink'
+  }`;
 
 export default function BrandingClient({ initial }) {
   const { toast } = useToast();
@@ -19,16 +25,13 @@ export default function BrandingClient({ initial }) {
   const [siteDescription, setSiteDescription] = useState(initial?.siteDescription || '');
   const [lightPalette, setLightPalette] = useState({ ...DEFAULT_LIGHT, ...(initial?.lightPalette || {}) });
   const [darkPalette, setDarkPalette] = useState({ ...DEFAULT_DARK, ...(initial?.darkPalette || {}) });
-  const [announcementBar, setAnnouncementBar] = useState({
-    enabled: false, text: '', link: '', ...(initial?.announcementBar || {})
-  });
+  const [announcementBar, setAnnouncementBar] = useState({ enabled: false, text: '', link: '', ...(initial?.announcementBar || {}) });
   const [footerCopyright, setFooterCopyright] = useState(initial?.footerCopyright || '');
   const [logoFile, setLogoFile] = useState(null);
   const [logoPreview, setLogoPreview] = useState(initial?.logoLight || '');
   const [maintenanceEnabled, setMaintenanceEnabled] = useState(initial?.maintenanceMode?.enabled || false);
   const [maintenanceMessage, setMaintenanceMessage] = useState(initial?.maintenanceMode?.message || '');
 
-  // Live-preview palette changes by updating CSS vars on the page
   useEffect(() => {
     const style = document.documentElement.style;
     style.setProperty('--color-primary', lightPalette.primary || '');
@@ -90,57 +93,59 @@ export default function BrandingClient({ initial }) {
   ];
 
   return (
-    <div className={styles.page}>
-      <div className={styles.tabs}>
+    <div className="flex flex-col gap-4">
+      {/* Tabs */}
+      <div className="flex border-b border-line gap-0 overflow-x-auto">
         {TABS.map((t) => (
-          <button key={t.id} type="button"
-            className={`${styles.tab} ${activeTab === t.id ? styles.activeTab : ''}`}
-            onClick={() => setActiveTab(t.id)}>{t.label}</button>
+          <button key={t.id} type="button" className={tabCls(activeTab === t.id)} onClick={() => setActiveTab(t.id)}>
+            {t.label}
+          </button>
         ))}
       </div>
 
-      <div className={styles.content}>
+      <div className="flex flex-col gap-4">
+        {/* Identity */}
         {activeTab === 'identity' && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Site identity</h2>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Site identity</h2>
             <AdminInput label="Site name" value={siteName} onChange={(e) => setSiteName(e.target.value)} />
-            <AdminInput label="Tagline" value={tagline} onChange={(e) => setTagline(e.target.value)}
-              hint="Short brand statement shown in header and SEO." />
-            <AdminTextarea label="Site description" value={siteDescription}
-              onChange={(e) => setSiteDescription(e.target.value)} rows={3}
-              hint="Used as default meta description." />
-            <div>
-              <div className={styles.logoLabel}>Logo (light mode)</div>
-              {logoPreview && <img src={logoPreview} alt="Logo" className={styles.logoPreview} />}
-              <input type="file" accept="image/*" onChange={onLogoChange} className={styles.fileInput} />
-              <p className={styles.hint}>PNG or SVG recommended. Will replace the text wordmark.</p>
+            <AdminInput label="Tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} hint="Short brand statement shown in header and SEO." />
+            <AdminTextarea label="Site description" value={siteDescription} onChange={(e) => setSiteDescription(e.target.value)} rows={3} hint="Used as default meta description." />
+            <div className="flex flex-col gap-2">
+              <span className="text-xs tracking-wide uppercase text-muted-fg font-medium">Logo (light mode)</span>
+              {logoPreview && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={logoPreview} alt="Logo" className="max-h-20 max-w-[240px] object-contain border border-line p-3 bg-surface-alt block mb-3" />
+              )}
+              <input type="file" accept="image/*" onChange={onLogoChange} className="text-xs text-muted-fg cursor-pointer" />
+              <p className="text-xs text-muted">PNG or SVG recommended. Will replace the text wordmark.</p>
             </div>
           </div>
         )}
 
+        {/* Colors */}
         {activeTab === 'colors' && (
-          <div className={styles.twoCol}>
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Light mode palette</h2>
-              <p className={styles.hint}>Changes preview live below. Click Save to persist.</p>
+          <div className="grid grid-cols-2 gap-4 max-[900px]:grid-cols-1">
+            <div className={sectionCls}>
+              <h2 className={sectionTitleCls}>Light mode palette</h2>
+              <p className="text-xs text-muted">Changes preview live. Click Save to persist.</p>
               {COLOR_FIELDS.map(({ key, label, hint }) => (
-                <div key={key} className={styles.colorRow}>
-                  <div className={styles.colorPreview} style={{ background: lightPalette[key] }} />
-                  <div className={styles.colorFields}>
+                <div key={key} className="flex gap-4 items-start">
+                  <div className="w-12 h-12 border border-line flex-shrink-0 mt-[22px]" style={{ background: lightPalette[key] }} />
+                  <div className="flex-1">
                     <AdminInput label={label} value={lightPalette[key] || ''}
-                      onChange={(e) => setLightPalette((p) => ({ ...p, [key]: e.target.value }))}
-                      hint={hint} />
+                      onChange={(e) => setLightPalette((p) => ({ ...p, [key]: e.target.value }))} hint={hint} />
                   </div>
                 </div>
               ))}
             </div>
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Dark mode palette</h2>
-              <p className={styles.hint}>Applied when user activates dark mode.</p>
-              {COLOR_FIELDS.map(({ key, label, hint }) => (
-                <div key={key} className={styles.colorRow}>
-                  <div className={styles.colorPreview} style={{ background: darkPalette[key] }} />
-                  <div className={styles.colorFields}>
+            <div className={sectionCls}>
+              <h2 className={sectionTitleCls}>Dark mode palette</h2>
+              <p className="text-xs text-muted">Applied when user activates dark mode.</p>
+              {COLOR_FIELDS.map(({ key, label }) => (
+                <div key={key} className="flex gap-4 items-start">
+                  <div className="w-12 h-12 border border-line flex-shrink-0 mt-[22px]" style={{ background: darkPalette[key] }} />
+                  <div className="flex-1">
                     <AdminInput label={label} value={darkPalette[key] || ''}
                       onChange={(e) => setDarkPalette((p) => ({ ...p, [key]: e.target.value }))} />
                   </div>
@@ -150,10 +155,11 @@ export default function BrandingClient({ initial }) {
           </div>
         )}
 
+        {/* Announcement */}
         {activeTab === 'announcement' && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Announcement bar</h2>
-            <label className={styles.toggle}>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Announcement bar</h2>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={announcementBar.enabled}
                 onChange={(e) => setAnnouncementBar((p) => ({ ...p, enabled: e.target.checked }))} />
               <span>Show announcement bar at top of site</span>
@@ -166,24 +172,25 @@ export default function BrandingClient({ initial }) {
           </div>
         )}
 
+        {/* Advanced */}
         {activeTab === 'advanced' && (
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Maintenance mode</h2>
-            <label className={styles.toggle}>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Maintenance mode</h2>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
               <input type="checkbox" checked={maintenanceEnabled}
                 onChange={(e) => setMaintenanceEnabled(e.target.checked)} />
               <span>Enable maintenance mode (hides public site)</span>
             </label>
             <AdminTextarea label="Maintenance message" value={maintenanceMessage}
               onChange={(e) => setMaintenanceMessage(e.target.value)} rows={2} />
-            <h2 className={styles.sectionTitle} style={{ marginTop: 'var(--s-4)' }}>Footer</h2>
+            <h2 className={`${sectionTitleCls} mt-4`}>Footer</h2>
             <AdminInput label="Copyright text" value={footerCopyright}
               onChange={(e) => setFooterCopyright(e.target.value)}
               placeholder={`© ${new Date().getFullYear()} UMICO`} />
           </div>
         )}
 
-        <div className={styles.saveRow}>
+        <div className="flex justify-start pt-4">
           <AdminBtn onClick={onSave} loading={saving}>Save settings</AdminBtn>
         </div>
       </div>

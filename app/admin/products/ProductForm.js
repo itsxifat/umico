@@ -6,7 +6,6 @@ import { useToast } from '@/components/providers/ToastProvider';
 import AdminBtn from '@/components/admin/AdminBtn';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminInput';
 import VariantMatrix from './VariantMatrix';
-import styles from './ProductForm.module.css';
 
 function slugify(s) {
   return String(s).toLowerCase().trim()
@@ -19,6 +18,10 @@ const SUITABILITY_OPTIONS = [
   { value: 'primarily_men', label: 'Primarily For Him' },
   { value: 'unisex', label: 'Unisex' },
 ];
+
+const sectionCls = 'bg-surface border border-line p-6 flex flex-col gap-4';
+const sectionTitleCls = 'font-sans text-xs font-semibold tracking-widest uppercase text-muted pb-3 border-b border-line';
+const row2Cls = 'grid grid-cols-2 gap-4 max-[640px]:grid-cols-1';
 
 export default function ProductForm({ initial }) {
   const router = useRouter();
@@ -44,31 +47,24 @@ export default function ProductForm({ initial }) {
   const [hasVariants, setHasVariants] = useState(initial?.hasVariants || false);
   const [variantDimensions, setVariantDimensions] = useState(initial?.variantDimensions || []);
   const [variants, setVariants] = useState(initial?.variants || []);
-  // Single SKU fields
   const [price, setPrice] = useState(initial?.price || '');
   const [compareAtPrice, setCompareAtPrice] = useState(initial?.compareAtPrice || '');
   const [stock, setStock] = useState(initial?.stock ?? 0);
   const [sku, setSku] = useState(initial?.sku || '');
   const [weight, setWeight] = useState(initial?.weight || '');
   const [lowStockThreshold, setLowStockThreshold] = useState(initial?.lowStockThreshold ?? 5);
-  // Images
   const [imageFiles, setImageFiles] = useState([]);
   const [imagePreviews, setImagePreviews] = useState(initial?.mainImages || []);
-
   const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState('basic');
 
-  useEffect(() => {
-    if (!slugTouched) setSlug(slugify(name));
-  }, [name, slugTouched]);
+  useEffect(() => { if (!slugTouched) setSlug(slugify(name)); }, [name, slugTouched]);
 
   useEffect(() => {
-    fetch('/api/admin/brands?limit=200&status=active')
-      .then((r) => r.json()).then((j) => { if (j.success) setBrands(j.data); });
-    fetch('/api/admin/categories?limit=200&status=active')
-      .then((r) => r.json()).then((j) => { if (j.success) setCategories(j.data); });
+    fetch('/api/admin/brands?limit=200&status=active').then((r) => r.json()).then((j) => { if (j.success) setBrands(j.data); });
+    fetch('/api/admin/categories?limit=200&status=active').then((r) => r.json()).then((j) => { if (j.success) setCategories(j.data); });
   }, []);
 
   const onImageChange = (e) => {
@@ -83,11 +79,8 @@ export default function ProductForm({ initial }) {
 
   const removeImage = (idx) => {
     setImagePreviews((prev) => prev.filter((_, i) => i !== idx));
-    // If it's a new file (not existing), remove from imageFiles too
     const existingCount = initial?.mainImages?.length || 0;
-    if (idx >= existingCount) {
-      setImageFiles((prev) => prev.filter((_, i) => i !== (idx - existingCount)));
-    }
+    if (idx >= existingCount) setImageFiles((prev) => prev.filter((_, i) => i !== (idx - existingCount)));
   };
 
   const onSubmit = async (e) => {
@@ -95,7 +88,6 @@ export default function ProductForm({ initial }) {
     if (!brandId) { toast('Please select a brand.', { type: 'error' }); return; }
     if (!categoryId) { toast('Please select a category.', { type: 'error' }); return; }
     setSaving(true);
-
     try {
       const form = new FormData();
       form.append('name', name); form.append('slug', slug);
@@ -124,7 +116,7 @@ export default function ProductForm({ initial }) {
       } else {
         toast(json.message || 'Save failed.', { type: 'error' });
       }
-    } catch (err) {
+    } catch {
       toast('Network error.', { type: 'error' });
     } finally {
       setSaving(false);
@@ -138,175 +130,156 @@ export default function ProductForm({ initial }) {
     { id: 'seo', label: 'SEO' },
   ];
 
+  const tabCls = (id) =>
+    `px-5 py-3 text-xs tracking-wide uppercase border-b-2 mb-[-1px] whitespace-nowrap transition-colors ${
+      activeTab === id
+        ? 'text-ink border-secondary'
+        : 'text-muted-fg border-transparent hover:text-ink'
+    }`;
+
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
-      <div className={styles.layout}>
-        {/* Tab navigation */}
-        <div className={styles.tabs}>
-          {TABS.map((t) => (
-            <button key={t.id} type="button"
-              className={`${styles.tab} ${activeTab === t.id ? styles.activeTab : ''}`}
-              onClick={() => setActiveTab(t.id)}>
-              {t.label}
-            </button>
-          ))}
+    <form onSubmit={onSubmit} className="w-full">
+      {/* Tabs */}
+      <div className="flex border-b border-line gap-0 overflow-x-auto mb-0">
+        {TABS.map((t) => (
+          <button key={t.id} type="button" className={tabCls(t.id)} onClick={() => setActiveTab(t.id)}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      <div className="flex gap-6 items-start mt-6 max-[900px]:flex-col">
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          {/* Basic info */}
+          {activeTab === 'basic' && (
+            <div className={sectionCls}>
+              <h2 className={sectionTitleCls}>Product identity</h2>
+              <AdminInput label="Product name" value={name} onChange={(e) => setName(e.target.value)} required />
+              <AdminInput label="Slug" value={slug}
+                onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }}
+                hint="Auto-generated. Used in /product/[slug] URL." />
+              <div className={row2Cls}>
+                <AdminSelect label="Brand" value={brandId} onChange={(e) => setBrandId(e.target.value)} required>
+                  <option value="">— Select brand —</option>
+                  {brands.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
+                </AdminSelect>
+                <AdminSelect label="Category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)} required>
+                  <option value="">— Select category —</option>
+                  {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
+                </AdminSelect>
+              </div>
+              <AdminSelect label="Suitability" value={suitability} onChange={(e) => setSuitability(e.target.value)}>
+                {SUITABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </AdminSelect>
+              <AdminInput label="Tags (comma separated)" value={tags} onChange={(e) => setTags(e.target.value)} hint="Used for search and filtering." />
+
+              {/* Images */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs tracking-wide uppercase text-muted-fg font-medium">Product images (1:1)</span>
+                <div className="flex flex-wrap gap-3">
+                  {imagePreviews.map((img, i) => (
+                    <div key={i} className="relative w-20 h-20">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={img.url || img.thumbnail} alt={img.alt || ''} className="w-full h-full object-cover border border-line" />
+                      <button type="button" onClick={() => removeImage(i)}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-secondary text-canvas text-xs rounded-full flex items-center justify-center leading-none">
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                  <label className="w-20 h-20 border-2 border-dashed border-line-strong flex items-center justify-center text-2xl text-muted cursor-pointer hover:border-ink hover:text-ink transition-colors">
+                    <span>+</span>
+                    <input type="file" accept="image/*" multiple onChange={onImageChange} className="hidden" />
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Content */}
+          {activeTab === 'content' && (
+            <div className={sectionCls}>
+              <h2 className={sectionTitleCls}>Product content</h2>
+              <AdminTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={6} hint="Full product description. HTML is supported." />
+              <AdminTextarea label="Ingredients" value={ingredients} onChange={(e) => setIngredients(e.target.value)} rows={4} />
+              <AdminTextarea label="How to use" value={howToUse} onChange={(e) => setHowToUse(e.target.value)} rows={4} />
+            </div>
+          )}
+
+          {/* Variants / Pricing */}
+          {activeTab === 'variants' && (
+            <div className={sectionCls}>
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <h2 className={sectionTitleCls}>Pricing & inventory</h2>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={hasVariants}
+                    onChange={(e) => { setHasVariants(e.target.checked); setVariants([]); setVariantDimensions([]); }} />
+                  <span>This product has variants</span>
+                </label>
+              </div>
+
+              {!hasVariants ? (
+                <div className="flex flex-col gap-4">
+                  <div className={row2Cls}>
+                    <AdminInput label="Price (৳)" type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} required />
+                    <AdminInput label="Compare-at price (৳)" type="number" min="0" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)} hint="Shown as crossed-out price." />
+                  </div>
+                  <div className={row2Cls}>
+                    <AdminInput label="Stock quantity" type="number" min="0" value={stock} onChange={(e) => setStock(e.target.value)} />
+                    <AdminInput label="Low stock threshold" type="number" min="0" value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} />
+                  </div>
+                  <div className={row2Cls}>
+                    <AdminInput label="SKU" value={sku} onChange={(e) => setSku(e.target.value)} />
+                    <AdminInput label="Weight (grams)" type="number" min="0" value={weight} onChange={(e) => setWeight(e.target.value)} />
+                  </div>
+                </div>
+              ) : (
+                <VariantMatrix
+                  dimensions={variantDimensions}
+                  onDimensionsChange={setVariantDimensions}
+                  variants={variants}
+                  onVariantsChange={setVariants}
+                />
+              )}
+            </div>
+          )}
+
+          {/* SEO */}
+          {activeTab === 'seo' && (
+            <div className={sectionCls}>
+              <h2 className={sectionTitleCls}>Search engine optimisation</h2>
+              <AdminInput label="SEO title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} hint="Defaults to product name. Max 60 characters." />
+              <AdminTextarea label="SEO description" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={3} hint="Max 160 characters." />
+            </div>
+          )}
         </div>
 
-        <div className={styles.body}>
-          <div className={styles.main}>
-            {/* Basic info tab */}
-            {activeTab === 'basic' && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Product identity</h2>
-                <AdminInput label="Product name" value={name}
-                  onChange={(e) => setName(e.target.value)} required />
-                <AdminInput label="Slug" value={slug}
-                  onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }}
-                  hint="Auto-generated. Used in /product/[slug] URL." />
-                <div className={styles.row2}>
-                  <AdminSelect label="Brand" value={brandId}
-                    onChange={(e) => setBrandId(e.target.value)} required>
-                    <option value="">— Select brand —</option>
-                    {brands.map((b) => <option key={b._id} value={b._id}>{b.name}</option>)}
-                  </AdminSelect>
-                  <AdminSelect label="Category" value={categoryId}
-                    onChange={(e) => setCategoryId(e.target.value)} required>
-                    <option value="">— Select category —</option>
-                    {categories.map((c) => <option key={c._id} value={c._id}>{c.name}</option>)}
-                  </AdminSelect>
-                </div>
-                <AdminSelect label="Suitability" value={suitability}
-                  onChange={(e) => setSuitability(e.target.value)}>
-                  {SUITABILITY_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
-                </AdminSelect>
-                <AdminInput label="Tags (comma separated)" value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                  hint="Used for search and filtering." />
-
-                {/* Images */}
-                <div className={styles.imageSection}>
-                  <span className={styles.imageLabel}>Product images (1:1)</span>
-                  <div className={styles.imagePreviews}>
-                    {imagePreviews.map((img, i) => (
-                      <div key={i} className={styles.imageThumb}>
-                        <img src={img.url || img.thumbnail} alt={img.alt || ''} />
-                        <button type="button" className={styles.removeImg}
-                          onClick={() => removeImage(i)}>×</button>
-                      </div>
-                    ))}
-                    <label className={styles.addImageBtn}>
-                      <span>+</span>
-                      <input type="file" accept="image/*" multiple
-                        onChange={onImageChange} className={styles.hidden} />
-                    </label>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Content tab */}
-            {activeTab === 'content' && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Product content</h2>
-                <AdminTextarea label="Description" value={description}
-                  onChange={(e) => setDescription(e.target.value)} rows={6}
-                  hint="Full product description. HTML is supported." />
-                <AdminTextarea label="Ingredients" value={ingredients}
-                  onChange={(e) => setIngredients(e.target.value)} rows={4} />
-                <AdminTextarea label="How to use" value={howToUse}
-                  onChange={(e) => setHowToUse(e.target.value)} rows={4} />
-              </div>
-            )}
-
-            {/* Variants / Pricing tab */}
-            {activeTab === 'variants' && (
-              <div className={styles.section}>
-                <div className={styles.variantsHeader}>
-                  <h2 className={styles.sectionTitle}>Pricing & inventory</h2>
-                  <label className={styles.toggle}>
-                    <input type="checkbox" checked={hasVariants}
-                      onChange={(e) => { setHasVariants(e.target.checked); setVariants([]); setVariantDimensions([]); }} />
-                    <span>This product has variants (sizes, colours, etc.)</span>
-                  </label>
-                </div>
-
-                {!hasVariants ? (
-                  <div className={styles.singlePricing}>
-                    <div className={styles.row2}>
-                      <AdminInput label="Price (৳)" type="number" min="0" value={price}
-                        onChange={(e) => setPrice(e.target.value)} required />
-                      <AdminInput label="Compare-at price (৳)" type="number" min="0"
-                        value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.target.value)}
-                        hint="Shown as original/crossed-out price." />
-                    </div>
-                    <div className={styles.row2}>
-                      <AdminInput label="Stock quantity" type="number" min="0"
-                        value={stock} onChange={(e) => setStock(e.target.value)} />
-                      <AdminInput label="Low stock threshold" type="number" min="0"
-                        value={lowStockThreshold} onChange={(e) => setLowStockThreshold(e.target.value)} />
-                    </div>
-                    <div className={styles.row2}>
-                      <AdminInput label="SKU" value={sku}
-                        onChange={(e) => setSku(e.target.value)} />
-                      <AdminInput label="Weight (grams)" type="number" min="0"
-                        value={weight} onChange={(e) => setWeight(e.target.value)} />
-                    </div>
-                  </div>
-                ) : (
-                  <VariantMatrix
-                    dimensions={variantDimensions}
-                    onDimensionsChange={setVariantDimensions}
-                    variants={variants}
-                    onVariantsChange={setVariants}
-                  />
-                )}
-              </div>
-            )}
-
-            {/* SEO tab */}
-            {activeTab === 'seo' && (
-              <div className={styles.section}>
-                <h2 className={styles.sectionTitle}>Search engine optimisation</h2>
-                <AdminInput label="SEO title" value={seoTitle}
-                  onChange={(e) => setSeoTitle(e.target.value)}
-                  hint="Defaults to product name. Max 60 characters." />
-                <AdminTextarea label="SEO description" value={seoDescription}
-                  onChange={(e) => setSeoDescription(e.target.value)} rows={3}
-                  hint="Max 160 characters." />
-              </div>
-            )}
+        {/* Sidebar */}
+        <div className="w-[280px] flex flex-col gap-4 flex-shrink-0 max-[900px]:w-full">
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Publish</h2>
+            <AdminSelect label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
+              <option value="draft">Draft</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </AdminSelect>
+            <div className="flex flex-col gap-2 pt-1">
+              {[
+                [isFeatured, setIsFeatured, 'Featured'],
+                [isNewArrival, setIsNewArrival, 'New arrival'],
+                [isBestSeller, setIsBestSeller, 'Best seller'],
+              ].map(([val, setter, label]) => (
+                <label key={label} className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input type="checkbox" checked={val} onChange={(e) => setter(e.target.checked)} />
+                  <span>{label}</span>
+                </label>
+              ))}
+            </div>
           </div>
-
-          {/* Sidebar */}
-          <div className={styles.sidebar}>
-            <div className={styles.section}>
-              <h2 className={styles.sectionTitle}>Publish</h2>
-              <AdminSelect label="Status" value={status}
-                onChange={(e) => setStatus(e.target.value)}>
-                <option value="draft">Draft</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-              </AdminSelect>
-              <div className={styles.checkboxes}>
-                {[
-                  [isFeatured, setIsFeatured, 'Featured'],
-                  [isNewArrival, setIsNewArrival, 'New arrival'],
-                  [isBestSeller, setIsBestSeller, 'Best seller'],
-                ].map(([val, setter, label]) => (
-                  <label key={label} className={styles.checkLabel}>
-                    <input type="checkbox" checked={val}
-                      onChange={(e) => setter(e.target.checked)} />
-                    <span>{label}</span>
-                  </label>
-                ))}
-              </div>
-            </div>
-            <div className={styles.btnRow}>
-              <AdminBtn type="submit" loading={saving}>
-                {isEdit ? 'Save changes' : 'Create product'}
-              </AdminBtn>
-              <AdminBtn variant="ghost" href="/admin/products">Cancel</AdminBtn>
-            </div>
+          <div className="flex flex-col gap-3">
+            <AdminBtn type="submit" loading={saving}>{isEdit ? 'Save changes' : 'Create product'}</AdminBtn>
+            <AdminBtn variant="ghost" href="/admin/products">Cancel</AdminBtn>
           </div>
         </div>
       </div>

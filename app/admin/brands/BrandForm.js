@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/providers/ToastProvider';
 import AdminBtn from '@/components/admin/AdminBtn';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminInput';
-import styles from './BrandForm.module.css';
 
 function slugify(s) {
   return String(s).toLowerCase().trim()
     .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
 }
+
+const sectionCls = 'bg-surface border border-line p-6 flex flex-col gap-4';
+const sectionTitleCls = 'font-sans text-xs font-semibold tracking-widest uppercase text-muted pb-3 border-b border-line';
 
 export default function BrandForm({ initial }) {
   const router = useRouter();
@@ -73,46 +75,48 @@ export default function BrandForm({ initial }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
-      <div className={styles.grid}>
-        <div className={styles.main}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Basic info</h2>
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="grid gap-6 items-start max-[900px]:grid-cols-1" style={{ gridTemplateColumns: '1fr 320px' }}>
+        {/* Main */}
+        <div className="flex flex-col gap-4">
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Basic info</h2>
             <AdminInput label="Brand name" value={name} onChange={(e) => setName(e.target.value)} required />
             <AdminInput label="Slug" value={slug}
               onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }}
               hint="Auto-generated. Used in /brand/[slug] URLs." />
-            <AdminTextarea label="Description" value={description}
-              onChange={(e) => setDescription(e.target.value)} rows={3} />
-            <div className={styles.row}>
-              <AdminInput label="Country of origin" value={countryOfOrigin}
-                onChange={(e) => setCountry(e.target.value)} />
-              <AdminInput label="Website URL" value={website} type="url"
-                onChange={(e) => setWebsite(e.target.value)} />
+            <AdminTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
+            <div className="grid grid-cols-2 gap-4 max-[640px]:grid-cols-1">
+              <AdminInput label="Country of origin" value={countryOfOrigin} onChange={(e) => setCountry(e.target.value)} />
+              <AdminInput label="Website URL" value={website} type="url" onChange={(e) => setWebsite(e.target.value)} />
             </div>
           </div>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>SEO</h2>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>SEO</h2>
             <AdminInput label="Meta title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
-            <AdminTextarea label="Meta description" value={seoDescription}
-              onChange={(e) => setSeoDescription(e.target.value)} rows={2} />
+            <AdminTextarea label="Meta description" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} />
           </div>
         </div>
-        <div className={styles.sidebar}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Status</h2>
+
+        {/* Sidebar */}
+        <div className="flex flex-col gap-4">
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Status</h2>
             <AdminSelect label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </AdminSelect>
           </div>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Logo</h2>
-            {logoPreview && <img src={logoPreview} alt="Logo preview" className={styles.logoPreview} />}
-            <input type="file" accept="image/*" onChange={onLogoChange} className={styles.fileInput} />
-            <p className={styles.hint}>PNG or SVG recommended. Will be displayed on brand page.</p>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Logo</h2>
+            {logoPreview && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={logoPreview} alt="Logo preview" className="max-h-20 max-w-[240px] object-contain border border-line p-3 bg-surface-alt block" />
+            )}
+            <input type="file" accept="image/*" onChange={onLogoChange} className="text-xs text-muted-fg cursor-pointer" />
+            <p className="text-xs text-muted">PNG or SVG recommended.</p>
           </div>
-          <div className={styles.btnRow}>
+          <div className="flex flex-col gap-3">
             <AdminBtn type="submit" loading={saving}>{isEdit ? 'Save changes' : 'Create brand'}</AdminBtn>
             <AdminBtn variant="ghost" href="/admin/brands">Cancel</AdminBtn>
           </div>

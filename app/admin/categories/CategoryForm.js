@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/providers/ToastProvider';
 import AdminBtn from '@/components/admin/AdminBtn';
 import { AdminInput, AdminTextarea, AdminSelect } from '@/components/admin/AdminInput';
-import styles from './CategoryForm.module.css';
 
 function slugify(str) {
   return String(str).toLowerCase().trim()
     .replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
 }
+
+const sectionCls = 'bg-surface border border-line p-6 flex flex-col gap-4';
+const sectionTitleCls = 'font-sans text-xs font-semibold tracking-widest uppercase text-muted pb-3 border-b border-line';
 
 export default function CategoryForm({ initial }) {
   const router = useRouter();
@@ -31,20 +33,14 @@ export default function CategoryForm({ initial }) {
   const [saving, setSaving] = useState(false);
   const [slugTouched, setSlugTouched] = useState(isEdit);
 
-  // Auto-slug from name
   useEffect(() => {
     if (!slugTouched) setSlug(slugify(name));
   }, [name, slugTouched]);
 
-  // Load parent categories
   useEffect(() => {
     fetch('/api/admin/categories?limit=200&status=active')
       .then((r) => r.json())
-      .then((j) => {
-        if (j.success) {
-          setParents(j.data.filter((c) => c._id !== initial?._id));
-        }
-      })
+      .then((j) => { if (j.success) setParents(j.data.filter((c) => c._id !== initial?._id)); })
       .catch(() => {});
   }, [initial]);
 
@@ -62,28 +58,19 @@ export default function CategoryForm({ initial }) {
     setSaving(true);
     try {
       const form = new FormData();
-      form.append('name', name);
-      form.append('slug', slug);
-      form.append('description', description);
-      form.append('parent', parentId || '');
-      form.append('status', status);
-      form.append('sortOrder', sortOrder);
-      form.append('seoTitle', seoTitle);
-      form.append('seoDescription', seoDescription);
+      form.append('name', name); form.append('slug', slug);
+      form.append('description', description); form.append('parent', parentId || '');
+      form.append('status', status); form.append('sortOrder', sortOrder);
+      form.append('seoTitle', seoTitle); form.append('seoDescription', seoDescription);
       if (imageFile) form.append('image', imageFile);
 
-      const url = isEdit
-        ? `/api/admin/categories/${initial._id}`
-        : '/api/admin/categories';
-      const method = isEdit ? 'PATCH' : 'POST';
-
-      const res = await fetch(url, { method, body: form });
+      const url = isEdit ? `/api/admin/categories/${initial._id}` : '/api/admin/categories';
+      const res = await fetch(url, { method: isEdit ? 'PATCH' : 'POST', body: form });
       const json = await res.json();
 
       if (json.success) {
         toast(isEdit ? 'Category updated.' : 'Category created.', { type: 'success' });
-        router.push('/admin/categories');
-        router.refresh();
+        router.push('/admin/categories'); router.refresh();
       } else {
         toast(json.message || 'Save failed.', { type: 'error' });
       }
@@ -95,77 +82,53 @@ export default function CategoryForm({ initial }) {
   };
 
   return (
-    <form onSubmit={onSubmit} className={styles.form}>
-      <div className={styles.grid}>
-        <div className={styles.main}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Basic info</h2>
+    <form onSubmit={onSubmit} className="w-full">
+      <div className="grid gap-6 items-start max-[900px]:grid-cols-1" style={{ gridTemplateColumns: '1fr 320px' }}>
+        {/* Main column */}
+        <div className="flex flex-col gap-4">
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Basic info</h2>
+            <AdminInput label="Name" value={name} onChange={(e) => setName(e.target.value)} required />
             <AdminInput
-              label="Name" value={name}
-              onChange={(e) => setName(e.target.value)} required
-            />
-            <AdminInput
-              label="Slug"
-              value={slug}
+              label="Slug" value={slug}
               onChange={(e) => { setSlugTouched(true); setSlug(e.target.value); }}
               hint="URL-safe identifier. Auto-generated from name."
             />
-            <AdminTextarea
-              label="Description" value={description}
-              onChange={(e) => setDescription(e.target.value)} rows={3}
-            />
+            <AdminTextarea label="Description" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
           </div>
-
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>SEO</h2>
-            <AdminInput
-              label="Meta title" value={seoTitle}
-              onChange={(e) => setSeoTitle(e.target.value)}
-              hint="Defaults to category name if empty."
-            />
-            <AdminTextarea
-              label="Meta description" value={seoDescription}
-              onChange={(e) => setSeoDescription(e.target.value)} rows={2}
-            />
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>SEO</h2>
+            <AdminInput label="Meta title" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} hint="Defaults to category name if empty." />
+            <AdminTextarea label="Meta description" value={seoDescription} onChange={(e) => setSeoDescription(e.target.value)} rows={2} />
           </div>
         </div>
 
-        <div className={styles.sidebar}>
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Publish</h2>
-            <AdminSelect label="Status" value={status}
-              onChange={(e) => setStatus(e.target.value)}>
+        {/* Sidebar column */}
+        <div className="flex flex-col gap-4">
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Publish</h2>
+            <AdminSelect label="Status" value={status} onChange={(e) => setStatus(e.target.value)}>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </AdminSelect>
-            <AdminInput
-              label="Sort order" type="number" value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value)}
-              hint="Lower numbers appear first."
-            />
-            <AdminSelect
-              label="Parent category" value={parentId}
-              onChange={(e) => setParentId(e.target.value)}
-            >
+            <AdminInput label="Sort order" type="number" value={sortOrder} onChange={(e) => setSortOrder(e.target.value)} hint="Lower numbers appear first." />
+            <AdminSelect label="Parent category" value={parentId} onChange={(e) => setParentId(e.target.value)}>
               <option value="">— No parent (top level) —</option>
-              {parents.map((p) => (
-                <option key={p._id} value={p._id}>{p.name}</option>
-              ))}
+              {parents.map((p) => <option key={p._id} value={p._id}>{p.name}</option>)}
             </AdminSelect>
           </div>
 
-          <div className={styles.section}>
-            <h2 className={styles.sectionTitle}>Image</h2>
+          <div className={sectionCls}>
+            <h2 className={sectionTitleCls}>Image</h2>
             {imagePreview && (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={imagePreview} alt="Preview" className={styles.preview} />
+              <img src={imagePreview} alt="Preview" className="w-full aspect-square object-cover border border-line" />
             )}
-            <input type="file" accept="image/*" onChange={onImageChange}
-              className={styles.fileInput} />
-            <p className={styles.hint}>1:1 ratio recommended. Max 5 MB.</p>
+            <input type="file" accept="image/*" onChange={onImageChange} className="text-xs text-muted-fg cursor-pointer" />
+            <p className="text-xs text-muted">1:1 ratio recommended. Max 5 MB.</p>
           </div>
 
-          <div className={styles.btnRow}>
+          <div className="flex flex-col gap-3">
             <AdminBtn type="submit" loading={saving}>
               {isEdit ? 'Save changes' : 'Create category'}
             </AdminBtn>

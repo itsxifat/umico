@@ -3,8 +3,12 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useToast } from '@/components/providers/ToastProvider';
 import AdminBtn from '@/components/admin/AdminBtn';
-import styles from './brands.module.css';
-import tableStyles from '@/components/admin/AdminTable.module.css';
+
+const BADGE = {
+  active: 'bg-[rgba(79,122,74,0.12)] text-success',
+  inactive: 'bg-[rgba(42,24,16,0.08)] text-muted',
+  draft: 'bg-[rgba(196,138,60,0.12)] text-warning',
+};
 
 export default function BrandsClient() {
   const { toast } = useToast();
@@ -46,49 +50,52 @@ export default function BrandsClient() {
 
   return (
     <div>
-      <div className={styles.toolbar}>
-        <input type="search" placeholder="Search brands…" value={q}
-          onChange={(e) => setQ(e.target.value)} className={styles.search} />
+      <div className="flex gap-3 items-center mb-5 flex-wrap">
+        <input
+          type="search" placeholder="Search brands…" value={q}
+          onChange={(e) => setQ(e.target.value)}
+          className="flex-1 min-w-[200px] max-w-[360px] px-4 py-3 border border-line-strong bg-surface text-ink text-sm focus:outline-none focus:border-ink"
+        />
         <AdminBtn variant="secondary" onClick={load} size="sm">Refresh</AdminBtn>
       </div>
 
-      <div className={tableStyles.wrap}>
+      <div className="overflow-x-auto">
         {loading ? (
-          <p className={tableStyles.empty}>Loading…</p>
+          <p className="text-center py-16 px-4 text-muted italic">Loading…</p>
         ) : rows.length === 0 ? (
-          <p className={tableStyles.empty}>No brands yet. Add your first brand.</p>
+          <p className="text-center py-16 px-4 text-muted italic">No brands yet. Add your first brand.</p>
         ) : (
-          <table className={tableStyles.table}>
+          <table className="w-full border-collapse text-sm">
             <thead>
               <tr>
-                <th>Brand</th>
-                <th>Slug</th>
-                <th>Country</th>
-                <th>Status</th>
-                <th></th>
+                {['Brand', 'Slug', 'Country', 'Status', ''].map((h) => (
+                  <th key={h} className="text-left px-4 py-3 text-[10px] font-semibold tracking-widest uppercase text-muted border-b border-line bg-surface whitespace-nowrap">
+                    {h}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((b) => (
-                <tr key={b._id}>
-                  <td>
-                    <div className={styles.nameCell}>
+                <tr key={b._id} className="transition-colors hover:bg-surface-alt">
+                  <td className="px-4 py-4 border-b border-line align-middle text-ink">
+                    <div className="flex items-center gap-3">
                       {b.logo
-                        ? <img src={b.logo} alt={b.name} className={styles.logo} />
-                        : <div className={styles.logoPlaceholder}>{b.name[0]}</div>
+                        ? <img src={b.logo} alt={b.name} className="w-9 h-9 object-contain border border-line flex-shrink-0 p-1" />
+                        : <div className="w-9 h-9 bg-surface-alt border border-line flex items-center justify-center text-xs font-medium text-muted-fg flex-shrink-0">{b.name[0]}</div>
                       }
                       <strong>{b.name}</strong>
                     </div>
                   </td>
-                  <td className={styles.slug}>{b.slug}</td>
-                  <td>{b.countryOfOrigin || <span className={styles.none}>—</span>}</td>
-                  <td>
-                    <span className={`${tableStyles.badge} ${tableStyles[b.status]}`}>
+                  <td className="px-4 py-4 border-b border-line align-middle font-mono text-xs text-muted">{b.slug}</td>
+                  <td className="px-4 py-4 border-b border-line align-middle text-ink">{b.countryOfOrigin || <span className="text-muted">—</span>}</td>
+                  <td className="px-4 py-4 border-b border-line align-middle">
+                    <span className={`inline-block px-2.5 py-0.5 text-[11px] tracking-wide rounded-full font-medium ${BADGE[b.status] || ''}`}>
                       {b.status}
                     </span>
                   </td>
-                  <td>
-                    <div className={tableStyles.actions}>
+                  <td className="px-4 py-4 border-b border-line align-middle">
+                    <div className="flex gap-2 justify-end">
                       <AdminBtn href={`/admin/brands/${b._id}/edit`} variant="ghost" size="sm">Edit</AdminBtn>
                       <AdminBtn variant="danger" size="sm"
                         onClick={() => del(b._id, b.name)}

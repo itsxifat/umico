@@ -4,13 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { PERMISSIONS } from '@/lib/permissions';
-import styles from './AdminSidebar.module.css';
 
-/**
- * Sidebar navigation for the admin panel.
- * Items hide themselves based on the current user's permissions.
- * (Super admin + admin always see everything.)
- */
 const NAV_ITEMS = [
   { href: '/admin', label: 'Dashboard', exact: true },
   {
@@ -82,40 +76,47 @@ export default function AdminSidebar({ user }) {
   const isActive = (href, exact) =>
     exact ? pathname === href : pathname === href || pathname.startsWith(href + '/');
 
+  const linkBase = 'block py-2 px-3 text-sm text-muted-fg border-l-2 border-transparent transition-all hover:text-ink hover:opacity-100';
+  const linkActive = 'text-ink bg-surface-alt border-l-accent';
+
   return (
     <>
+      {/* Mobile trigger */}
       <button
         type="button"
-        className={styles.mobileTrigger}
+        className="hidden max-[900px]:inline-flex fixed top-4 left-4 z-[calc(var(--z-modal))] w-10 h-10 bg-surface border border-line items-center justify-center text-xl"
         onClick={() => setMobileOpen((v) => !v)}
         aria-label="Toggle admin menu"
       >
         ☰
       </button>
-      <aside className={`${styles.sidebar} ${mobileOpen ? styles.open : ''}`}>
-        <div className={styles.brand}>
-          <Link href="/admin" className={styles.brandLink}>
+
+      <aside className={`sticky top-0 h-screen overflow-y-auto bg-surface border-r border-line py-6 flex flex-col max-[900px]:fixed max-[900px]:inset-y-0 max-[900px]:left-0 max-[900px]:w-[280px] max-[900px]:z-[calc(var(--z-modal)-1)] max-[900px]:transition-transform max-[900px]:duration-300 ${mobileOpen ? 'max-[900px]:translate-x-0' : 'max-[900px]:-translate-x-full'}`}>
+        {/* Brand mark */}
+        <div className="flex items-baseline gap-2 px-6 pb-8 border-b border-line mb-6">
+          <Link href="/admin" className="font-serif text-xl tracking-widest text-ink">
             UMICO
           </Link>
-          <span className={styles.brandLabel}>Admin</span>
+          <span className="text-[10px] tracking-widest uppercase text-muted">Admin</span>
         </div>
 
-        <nav className={styles.nav} aria-label="Admin">
+        {/* Nav */}
+        <nav className="flex-1 px-4 flex flex-col gap-6" aria-label="Admin">
           {NAV_ITEMS.map((item, i) => {
             if (item.children) {
               const visible = item.children.filter((c) => hasAccess(user, c.perm));
               if (visible.length === 0) return null;
               return (
-                <div key={i} className={styles.group}>
-                  <div className={styles.groupHeading}>{item.heading}</div>
-                  <ul>
+                <div key={i} className="flex flex-col gap-2">
+                  <div className="text-[10px] font-semibold tracking-widest uppercase text-muted px-3 pb-2">
+                    {item.heading}
+                  </div>
+                  <ul className="flex flex-col">
                     {visible.map((child) => (
                       <li key={child.href}>
                         <Link
                           href={child.href}
-                          className={`${styles.link} ${
-                            isActive(child.href, false) ? styles.active : ''
-                          }`}
+                          className={`${linkBase} ${isActive(child.href, false) ? linkActive : ''}`}
                           onClick={() => setMobileOpen(false)}
                         >
                           {child.label}
@@ -130,9 +131,7 @@ export default function AdminSidebar({ user }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`${styles.link} ${styles.topLink} ${
-                  isActive(item.href, item.exact) ? styles.active : ''
-                }`}
+                className={`${linkBase} py-3 font-medium ${isActive(item.href, item.exact) ? linkActive : ''}`}
                 onClick={() => setMobileOpen(false)}
               >
                 {item.label}
@@ -141,8 +140,9 @@ export default function AdminSidebar({ user }) {
           })}
         </nav>
 
-        <div className={styles.footer}>
-          <Link href="/" className={styles.viewSite}>
+        {/* Footer */}
+        <div className="px-6 pt-6 border-t border-line mt-6">
+          <Link href="/" className="text-xs tracking-wide text-muted">
             ← View site
           </Link>
         </div>

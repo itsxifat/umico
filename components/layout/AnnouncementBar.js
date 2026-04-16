@@ -1,17 +1,15 @@
 import Link from 'next/link';
-import styles from './AnnouncementBar.module.css';
 
 export default function AnnouncementBar({ config }) {
   if (!config?.enabled || !config?.text) return null;
 
-  const content = (
-    <span className={styles.text}>{config.text}</span>
-  );
+  const barCls = 'bg-secondary text-canvas text-center py-2 px-4 text-xs tracking-widest uppercase';
+  const content = <span>{config.text}</span>;
 
   return (
-    <div className={styles.bar}>
+    <div className={barCls}>
       {config.link ? (
-        <Link href={config.link} className={styles.link}>
+        <Link href={config.link} className="text-inherit no-underline">
           {content}
         </Link>
       ) : (

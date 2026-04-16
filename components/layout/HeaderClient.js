@@ -2,27 +2,29 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import styles from './HeaderClient.module.css';
+
+const iconBtnCls = 'relative inline-flex items-center justify-center w-10 h-10 text-ink hover:opacity-65 transition-opacity';
 
 export function MobileMenuButton() {
   const toggle = () => {
     const el = document.getElementById('umico-mobile-nav');
     if (!el) return;
-    el.classList.toggle(styles.open);
-    document.body.style.overflow = el.classList.contains(styles.open) ? 'hidden' : '';
+    const isOpen = el.dataset.open === 'true';
+    el.dataset.open = String(!isOpen);
+    document.body.style.overflow = !isOpen ? 'hidden' : '';
   };
 
   return (
     <button
       type="button"
-      className={styles.iconBtn + ' ' + styles.mobileTrigger}
+      className={`${iconBtnCls} min-[900px]:hidden`}
       aria-label="Open menu"
       onClick={toggle}
     >
-      <span className={styles.burger}>
-        <span />
-        <span />
-        <span />
+      <span className="inline-flex flex-col gap-[5px] w-5">
+        <span className="block h-px bg-current w-full transition-transform" />
+        <span className="block h-px bg-current w-full transition-transform" />
+        <span className="block h-px bg-current w-full transition-transform" />
       </span>
     </button>
   );
@@ -32,28 +34,36 @@ export function MobileMenuPanel({ menuItems }) {
   const close = () => {
     const el = document.getElementById('umico-mobile-nav');
     if (!el) return;
-    el.classList.remove(styles.open);
+    el.dataset.open = 'false';
     document.body.style.overflow = '';
   };
 
   return (
-    <div id="umico-mobile-nav" className={styles.mobilePanel} aria-hidden="true">
+    <div
+      id="umico-mobile-nav"
+      data-open="false"
+      className="fixed inset-0 bg-canvas z-[var(--z-modal)] px-6 pb-6 pt-16 -translate-y-full pointer-events-none transition-transform duration-300 data-[open=true]:translate-y-0 data-[open=true]:pointer-events-auto min-[900px]:hidden"
+    >
       <button
         type="button"
-        className={styles.mobileClose}
+        className="absolute top-4 right-4 w-11 h-11 text-3xl leading-none text-ink"
         onClick={close}
         aria-label="Close menu"
       >
         ×
       </button>
-      <nav className={styles.mobileNav} aria-label="Mobile">
+      <nav aria-label="Mobile">
         {menuItems.length === 0 ? (
-          <p className={styles.mobileEmpty}>Menu not configured yet.</p>
+          <p className="text-muted italic">Menu not configured yet.</p>
         ) : (
-          <ul>
+          <ul className="flex flex-col gap-4">
             {menuItems.map((item, i) => (
               <li key={i}>
-                <Link href={item.url || '#'} onClick={close}>
+                <Link
+                  href={item.url || '#'}
+                  onClick={close}
+                  className="block font-serif text-2xl text-ink py-2"
+                >
                   {item.label}
                 </Link>
               </li>
@@ -67,7 +77,7 @@ export function MobileMenuPanel({ menuItems }) {
 
 export function SearchButton() {
   return (
-    <Link href="/search" className={styles.iconBtn} aria-label="Search">
+    <Link href="/search" className={iconBtnCls} aria-label="Search">
       <SearchIcon />
     </Link>
   );
@@ -75,7 +85,7 @@ export function SearchButton() {
 
 export function AccountButton() {
   return (
-    <Link href="/account" className={styles.iconBtn} aria-label="Account">
+    <Link href="/account" className={iconBtnCls} aria-label="Account">
       <UserIcon />
     </Link>
   );
@@ -83,7 +93,7 @@ export function AccountButton() {
 
 export function WishlistButton() {
   return (
-    <Link href="/wishlist" className={styles.iconBtn} aria-label="Wishlist">
+    <Link href="/wishlist" className={iconBtnCls} aria-label="Wishlist">
       <HeartIcon />
     </Link>
   );
@@ -98,10 +108,7 @@ export function CartButton() {
         const raw = localStorage.getItem('umico-cart');
         if (!raw) return setCount(0);
         const parsed = JSON.parse(raw);
-        const total = (parsed.items || []).reduce(
-          (acc, it) => acc + (it.quantity || 0),
-          0
-        );
+        const total = (parsed.items || []).reduce((acc, it) => acc + (it.quantity || 0), 0);
         setCount(total);
       } catch {
         setCount(0);
@@ -117,9 +124,13 @@ export function CartButton() {
   }, []);
 
   return (
-    <Link href="/cart" className={styles.iconBtn} aria-label="Cart">
+    <Link href="/cart" className={iconBtnCls} aria-label="Cart">
       <BagIcon />
-      {count > 0 && <span className={styles.badge}>{count}</span>}
+      {count > 0 && (
+        <span className="absolute top-1 right-0.5 min-w-[16px] h-4 px-1 text-[10px] leading-4 font-sans text-center bg-secondary text-canvas rounded-full font-medium">
+          {count}
+        </span>
+      )}
     </Link>
   );
 }
