@@ -210,8 +210,8 @@ export default function ProductDetail({ product }) {
             </div>
           ))}
 
-          {/* Quantity + add to cart */}
-          <div className="flex items-center gap-4 mt-2">
+          {/* Quantity + add to cart + wishlist */}
+          <div className="flex items-center gap-3 mt-2">
             <div className="flex items-center border border-line-strong">
               <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))}
                 className="w-10 h-10 text-lg text-muted-fg hover:text-ink transition-colors">−</button>
@@ -227,6 +227,7 @@ export default function ProductDetail({ product }) {
             >
               {added ? '✓ Added to cart' : !inStock ? 'Out of stock' : (hasVariants && !matchedVariant) ? 'Select options' : 'Add to cart'}
             </button>
+            <WishlistBtn productId={product._id} />
           </div>
 
           {/* Stock indicator */}
@@ -275,6 +276,38 @@ export default function ProductDetail({ product }) {
       {/* Reviews section */}
       <ReviewsSection productId={product._id} />
     </div>
+  );
+}
+
+function WishlistBtn({ productId }) {
+  const [wishlisted, setWishlisted] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  const toggle = async () => {
+    setBusy(true);
+    try {
+      const method = wishlisted ? 'DELETE' : 'POST';
+      const res = await fetch('/api/wishlist', {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId }),
+      });
+      const json = await res.json();
+      if (json.success) setWishlisted(!wishlisted);
+    } catch {} finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button type="button" onClick={toggle} disabled={busy} aria-label="Add to wishlist"
+      className={`w-12 h-12 flex items-center justify-center border transition-colors flex-shrink-0 ${
+        wishlisted ? 'border-secondary text-secondary bg-[rgba(var(--color-secondary-rgb,42,24,16),0.05)]' : 'border-line-strong text-muted-fg hover:text-ink hover:border-ink'
+      }`}>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill={wishlisted ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="1.5">
+        <path d="M12 21s-7-4.5-9-9C1.5 8 4 5 7 5c2 0 4 1 5 3 1-2 3-3 5-3 3 0 5.5 3 4 7-2 4.5-9 9-9 9z" strokeLinejoin="round" />
+      </svg>
+    </button>
   );
 }
 
